@@ -46,11 +46,11 @@ class ScenarioFixture(object):
                 sizes=[
                     dict(name='tiny', size_min=99, size_max=100),
                     dict(name='small', size_min=199, size_max=200,
-                         crud_profile=[73, 12, 5, 10]),
+                         crud_profile=[73, 12, 5, 10, 0]),
                     dict(name='medium', size_min=299, size_max=300),
                     dict(name='red herring', size_min=9999, size_max=9999),
                     dict(name='large', size_min=399, size_max=400,
-                         crud_profile=[13, 17, 19, 51])],
+                         crud_profile=[13, 17, 19, 51, 0])],
                 initial_files=dict(
                     tiny=700, small=400, medium=200, large=100),
                 # From first POC input, all file size percentages can be
@@ -58,7 +58,7 @@ class ScenarioFixture(object):
                 # we take that shortcut in the definition of scenarios.
                 operation_count=20000,
                 #             C  R  U  D
-                crud_profile=[10, 7, 4, 1],  # maybe make this a dict?
+                crud_profile=[10, 7, 4, 1, 0],  # maybe make this a dict?
                 user_count=1,
             )
         self.write_scenario_file()
@@ -216,7 +216,8 @@ class TestScenario(ScenarioFixture):
         assert_list_equal([10.0 / 22 * 100,
                            7.0 / 22 * 100,
                            4.0 / 22 * 100,
-                           1.0 / 22 * 100], self.scenario.crud_pcts)
+                           1.0 / 22 * 100,
+                           0.0 / 22 * 100], self.scenario.crud_pcts)
 
     def test_bench_jobs(self):
         jobs = list(self.scenario.bench_jobs())

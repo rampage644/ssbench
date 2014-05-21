@@ -72,6 +72,11 @@ class TestReporterBase(ScenarioFixture, TestCase):
                  3, ssbench.READ_OBJECT, 'medium', 103.9, 104.2, 104.3, 0),
              self.gen_result(
                  3, ssbench.UPDATE_OBJECT, 'tiny', 104.3, 104.9, 104.999, 0)],
+            # worker 4 get results from POST only :)
+            # [self.gen_result(
+            #     4, ssbench.POST_OBJECT, 'small', 103.1, 103.6, 103.9, 0),
+            #  self.gen_result(
+            #      4, ssbench.POST_OBJECT, 'large', 102.9, 103.0, 103.3, 0)],
         ]
         self.run_results = MagicMock()
         self.run_results.read_results.return_value = (self.scenario,
@@ -110,18 +115,18 @@ class TestReporter(TestReporterBase):
             sizes=[
                 dict(name='tiny', size_min=99, size_max=100),
                 dict(name='small', size_min=1990, size_max=1990,
-                     crud_profile=[71, 9, 12, 8]),
+                     crud_profile=[71, 9, 12, 8, 0]),
                 dict(name='medium', size_min=2990, size_max=3000),
                 dict(name='unused', size_min=9876543, size_max=9876543),
                 dict(name='large', size_min=399000, size_max=400000,
-                     crud_profile=[16, 61, 7, 16]),
+                     crud_profile=[16, 61, 7, 16, 0]),
                 dict(name='huge', size_min=49900000, size_max=71499999)],
             initial_files=dict(
                 tiny=300, small=400, medium=500, large=200, huge=70,
             ),
             operation_count=5000,
             #             C  R  U  D
-            crud_profile=[5, 3, 1, 1],
+            crud_profile=[5, 3, 1, 1, 0],
             user_count=2,
             delete_after=None,
         )
@@ -847,15 +852,15 @@ Reporter Test Scenario - ablkei  (generated with ssbench version 0.2.14)
 Worker count:   3   Concurrency:   2  Ran 1970-01-01 00:01:39 UTC to 1970-01-01 00:01:46 UTC (7s)
 Object expiration (X-Delete-After): None (sec)
 
-% Ops    C   R   U   D       Size Range       Size Name
- 20%   % 50  30  10  10       99  B - 100  B  tiny
- 27%   % 71   9  12   8        2 kB           small
- 34%   % 50  30  10  10        3 kB -   3 kB  medium
-  0%   % 50  30  10  10       10 MB           unused
- 14%   % 16  61   7  16      399 kB - 400 kB  large
-  5%   % 50  30  10  10       50 MB -  71 MB  huge
+% Ops    C   R   U   D   X    Size Range       Size Name
+ 20%   % 50  30  10  10   0       99  B - 100  B  tiny
+ 27%   % 71   9  12   8   0        2 kB           small
+ 34%   % 50  30  10  10   0        3 kB -   3 kB  medium
+  0%   % 50  30  10  10   0       10 MB           unused
+ 14%   % 16  61   7  16   0      399 kB - 400 kB  large
+  5%   % 50  30  10  10   0       50 MB -  71 MB  huge
 ---------------------------------------------------------------------
-         51  29  10  10      CRUD weighted average
+         51  29  10  10   0     CRUD weighted average
 
 TOTAL
        Count:    12 (    1 error;     7 retries: 58.33%)  Average requests per second:   0.2
@@ -1215,18 +1220,18 @@ class TestDeleteAfterNonNone(TestReporterBase):
             sizes=[
                 dict(name='tiny', size_min=99, size_max=100),
                 dict(name='small', size_min=1990, size_max=1990,
-                     crud_profile=[71, 9, 12, 8]),
+                     crud_profile=[71, 9, 12, 8, 0]),
                 dict(name='medium', size_min=2990, size_max=3000),
                 dict(name='unused', size_min=9876543, size_max=9876543),
                 dict(name='large', size_min=399000, size_max=400000,
-                     crud_profile=[16, 61, 7, 16]),
+                     crud_profile=[16, 61, 7, 16, 0]),
                 dict(name='huge', size_min=49900000, size_max=71499999)],
             initial_files=dict(
                 tiny=300, small=400, medium=500, large=200, huge=70,
             ),
             operation_count=5000,
             #             C  R  U  D
-            crud_profile=[5, 3, 1, 1],
+            crud_profile=[5, 3, 1, 1, 0],
             user_count=2,
             delete_after=713,
         )
@@ -1241,15 +1246,15 @@ Reporter Test Scenario - ablkei  (generated with ssbench version 0.2.14)
 Worker count:   3   Concurrency:   2  Ran 1970-01-01 00:01:39 UTC to 1970-01-01 00:01:46 UTC (7s)
 Object expiration (X-Delete-After): 713 (sec)
 
-% Ops    C   R   U   D       Size Range       Size Name
- 20%   % 50  30  10  10       99  B - 100  B  tiny
- 27%   % 71   9  12   8        2 kB           small
- 34%   % 50  30  10  10        3 kB -   3 kB  medium
-  0%   % 50  30  10  10       10 MB           unused
- 14%   % 16  61   7  16      399 kB - 400 kB  large
-  5%   % 50  30  10  10       50 MB -  71 MB  huge
+% Ops    C   R   U   D   X    Size Range       Size Name
+ 20%   % 50  30  10  10   0       99  B - 100  B  tiny
+ 27%   % 71   9  12   8   0        2 kB           small
+ 34%   % 50  30  10  10   0        3 kB -   3 kB  medium
+  0%   % 50  30  10  10   0       10 MB           unused
+ 14%   % 16  61   7  16   0      399 kB - 400 kB  large
+  5%   % 50  30  10  10   0       50 MB -  71 MB  huge
 ---------------------------------------------------------------------
-         51  29  10  10      CRUD weighted average
+         51  29  10  10   0     CRUD weighted average
 
 TOTAL
        Count:    12 (    1 error;     7 retries: 58.33%)  Average requests per second:   0.2

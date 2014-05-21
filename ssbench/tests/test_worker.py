@@ -498,6 +498,30 @@ class TestWorker(object):
 
         self.mock_worker.handle_get_object(object_info)
 
+    def test_handle_post_object(self):
+        object_info = {
+            'type': ssbench.POST_OBJECT,
+            'size': 483213,
+        }
+        self.mock_worker.should_receive(
+            'ignoring_http_responses',
+        ).with_args(
+            (404, 503), client.head_object, object_info,
+        ).and_return({
+            'x-swiftstack-first-byte-latency': 2.63,
+            'x-swiftstack-last-byte-latency': 7.4,
+            'x-trans-id': 'bies',
+            'retries': 0,
+        }).once
+        self.result_queue.should_receive('put').with_args(
+            add_dicts(
+                object_info, worker_id=self.worker_id,
+                completed_at=self.stub_time, trans_id='bies',
+                first_byte_latency=2.63, last_byte_latency=7.4, retries=0),
+        ).once
+
+        self.mock_worker.handle_post_object(object_info)
+
     def test_dispatching_bad_job_type(self):
         info = {'type': 'zomg,what?', 'a': 1}
         assert_raises(NameError, self.mock_worker.handle_job, info)

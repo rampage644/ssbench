@@ -41,18 +41,18 @@ class TestMaster(ScenarioFixture, TestCase):
             sizes=[
                 dict(name='tiny', size_min=99, size_max=100),
                 dict(name='small', size_min=1990, size_max=1990,
-                     crud_profile=[71, 9, 12, 8]),
+                     crud_profile=[71, 9, 12, 8, 0]),
                 dict(name='medium', size_min=2990, size_max=3000),
                 dict(name='unused', size_min=9876543, size_max=9876543),
                 dict(name='large', size_min=399000, size_max=400000,
-                     crud_profile=[16, 61, 7, 16]),
+                     crud_profile=[16, 61, 7, 16, 0]),
                 dict(name='huge', size_min=49900000, size_max=71499999)],
             initial_files=dict(
                 tiny=300, small=400, medium=500, large=200, huge=70,
             ),
             operation_count=5000,
             #             C  R  U  D
-            crud_profile=[5, 3, 1, 1],
+            crud_profile=[5, 3, 1, 1, 0],
             user_count=2,
         )
         super(TestMaster, self).setUp()
