@@ -58,12 +58,12 @@ ${scenario.name}  (generated with ssbench version ${scenario.version})
 Worker count: ${'%3d' % agg_stats['worker_count']}   Concurrency: ${'%3d' % scenario.user_count}  Ran ${start_time} to ${stop_time} (${'%.0f' % round(duration)}s)
 Object expiration (X-Delete-After): ${scenario.delete_after} (sec)
 
-%% Ops    C   R   U   D       Size Range       Size Name
+%% Ops    C   R   U   D   X    Size Range       Size Name
 % for size_datum in size_data:
 ${size_datum['pct_total_ops']}   % ${size_datum['crud_pcts']}      ${size_datum['size_range']}  ${size_datum['size_name']}
 % endfor
 ---------------------------------------------------------------------
-        ${'%3.0f' % weighted_c} ${'%3.0f' % weighted_r} ${'%3.0f' % weighted_u} ${'%3.0f' % weighted_d}      CRUD weighted average
+        ${'%3.0f' % weighted_c} ${'%3.0f' % weighted_r} ${'%3.0f' % weighted_u} ${'%3.0f' % weighted_d} ${'%3.0f' % weighted_p}     CRUD weighted average
 
 % for label, stats, sstats in stat_list:
 % if stats['req_count']:
@@ -105,6 +105,8 @@ Distribution of requests per worker-ID: ${jobs_per_worker_stats['min']} - ${jobs
                  stats['op_stats'][ssbench.UPDATE_OBJECT]['size_stats']),
                 ('DELETE', stats['op_stats'][ssbench.DELETE_OBJECT],
                  stats['op_stats'][ssbench.DELETE_OBJECT]['size_stats']),
+                ('POST', stats['op_stats'][ssbench.POST_OBJECT],
+                 stats['op_stats'][ssbench.POST_OBJECT]['size_stats']),
             ],
             'agg_stats': stats['agg_stats'],
             'nth_pctile': stats['nth_pctile'],
@@ -120,6 +122,7 @@ Distribution of requests per worker-ID: ${jobs_per_worker_stats['min']} - ${jobs
             'weighted_r': 0.0,
             'weighted_u': 0.0,
             'weighted_d': 0.0,
+            'weighted_p': 0.0,
         }
         for size_data in self.scenario.sizes_by_name.values():
             if size_data['size_min'] == size_data['size_max']:
@@ -148,6 +151,8 @@ Distribution of requests per worker-ID: ${jobs_per_worker_stats['min']} - ${jobs
                 pct_total * size_data['crud_pcts'][2] / 100.0
             tmpl_vars['weighted_d'] += \
                 pct_total * size_data['crud_pcts'][3] / 100.0
+            tmpl_vars['weighted_p'] += \
+                pct_total * size_data['crud_pcts'][4] / 100.0
         if output_csv:
             csv_fields = [
                 'scenario_name', 'ssbench_version', 'worker_count',
@@ -329,7 +334,8 @@ Distribution of requests per worker-ID: ${jobs_per_worker_stats['min']} - ${jobs
         agg_stats = dict(start=2 ** 32, stop=0, req_count=0)
         op_stats = {}
         for crud_type in [ssbench.CREATE_OBJECT, ssbench.READ_OBJECT,
-                          ssbench.UPDATE_OBJECT, ssbench.DELETE_OBJECT]:
+                          ssbench.UPDATE_OBJECT, ssbench.DELETE_OBJECT,
+                          ssbench.POST_OBJECT]:
             op_stats[crud_type] = dict(
                 req_count=0, avg_req_per_sec=0,
                 size_stats=OrderedDict.fromkeys(
