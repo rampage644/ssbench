@@ -444,3 +444,11 @@ class Worker(object):
             (404, 503), client.get_object, object_info,
             resp_chunk_size=object_info.get('block_size', DEFAULT_BLOCK_SIZE))
         self._put_results_from_response(object_info, headers)
+
+    def handle_post_object(self, object_info):
+        headers = self.ignoring_http_responses(
+            (404, 503), client.exec_account, object_info,
+            contents=object_info['contents'],
+            content_length=len(object_info['contents']),
+            content_type='application/json')
+        self._put_results_from_response(object_info, headers)

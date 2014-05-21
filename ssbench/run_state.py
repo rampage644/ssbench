@@ -17,6 +17,24 @@ from collections import defaultdict, deque
 
 import ssbench
 
+JOB_TMPLT = """[{
+   "exec": {
+     "path":"swift://~/bench/bench_2",
+     "args": "/dev/input"
+   },
+   "file_list": [
+     {
+       "device": "input",
+       "path": "swift://~/input/input/object%d.txt"
+     },
+     {
+       "device": "stdout"
+     }
+   ],
+   "name": "bench_2"
+}]
+"""
+
 
 class RunState(object):
     """
@@ -37,6 +55,7 @@ class RunState(object):
         # deque) with append().
         # A result for READ, UPDATE, DELETE does nothing with the deque.
         self.objs_by_size = defaultdict(deque)
+        self.last_post_object_accessed = 1
 
     def _handle_result(self, result, initial=False):
         if 'exception' not in result and \
@@ -59,6 +78,10 @@ class RunState(object):
             except IndexError:
                 # Nothing (of this size) to delete... bummer.
                 return None
+        elif job['type'] == ssbench.POST_OBJECT:
+            obj_info = ('', '', '')
+            self.last_post_object_accessed += 1
+            job['contents'] = JOB_TMPLT % (self.last_post_object_accessed)
         elif job['type'] != ssbench.CREATE_OBJECT:
             try:
                 obj_info = self.objs_by_size[job['size_str']][0]
