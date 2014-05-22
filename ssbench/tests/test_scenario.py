@@ -40,17 +40,21 @@ class ScenarioFixture(object):
             self.tmp_file = tempfile.NamedTemporaryFile()
             self.stub_scenario_file = self.tmp_file.name
 
+        if not hasattr(self, 'stub_post_job_file'):
+            self.post_job_tmp_file = tempfile.NamedTemporaryFile()
+            self.stub_post_job_file = self.post_job_tmp_file.name
+
         if not getattr(self, 'scenario_dict', None):
             self.scenario_dict = dict(
                 name='Test1 - Happy go lucky',
                 sizes=[
                     dict(name='tiny', size_min=99, size_max=100),
                     dict(name='small', size_min=199, size_max=200,
-                         crud_profile=[73, 12, 5, 10, 0]),
+                         crud_profile=[73, 12, 5, 9, 1]),
                     dict(name='medium', size_min=299, size_max=300),
                     dict(name='red herring', size_min=9999, size_max=9999),
                     dict(name='large', size_min=399, size_max=400,
-                         crud_profile=[13, 17, 19, 51, 0])],
+                         crud_profile=[13, 17, 19, 50, 1])],
                 initial_files=dict(
                     tiny=700, small=400, medium=200, large=100),
                 # From first POC input, all file size percentages can be
@@ -58,8 +62,9 @@ class ScenarioFixture(object):
                 # we take that shortcut in the definition of scenarios.
                 operation_count=20000,
                 #             C  R  U  D
-                crud_profile=[10, 7, 4, 1, 0],  # maybe make this a dict?
+                crud_profile=[10, 7, 4, 1, 1],  # maybe make this a dict?
                 user_count=1,
+                post_job_template=self.stub_post_job_file
             )
         self.write_scenario_file()
         self.scenario = Scenario(self.stub_scenario_file)
@@ -72,6 +77,12 @@ class ScenarioFixture(object):
                 del self.tmp_file
         except OSError:
             pass  # don't care if it didn't get created
+        try:
+            if hasattr(self, 'post_job_tmp_file'):
+                self.post_job_tmp_file.close()
+                del self.post_job_tmp_file
+        except OSError:
+            pass
         superclass = super(ScenarioFixture, self)
         if hasattr(superclass, 'tearDown'):
             superclass.tearDown()
@@ -213,11 +224,11 @@ class TestScenario(ScenarioFixture):
         assert_equal(13, scenario.container_concurrency)
 
     def test_crud_pcts(self):
-        assert_list_equal([10.0 / 22 * 100,
-                           7.0 / 22 * 100,
-                           4.0 / 22 * 100,
-                           1.0 / 22 * 100,
-                           0.0 / 22 * 100], self.scenario.crud_pcts)
+        assert_list_equal([10.0 / 23 * 100,
+                           7.0 / 23 * 100,
+                           4.0 / 23 * 100,
+                           1.0 / 23 * 100,
+                           1.0 / 23 * 100], self.scenario.crud_pcts)
 
     def test_bench_jobs(self):
         jobs = list(self.scenario.bench_jobs())
@@ -248,21 +259,24 @@ class TestScenario(ScenarioFixture):
         tiny_job_types = [j['type'] for j in jobs if j['size_str'] == 'tiny']
         tiny_counter = Counter(tiny_job_types)
         jcount = len(tiny_job_types)
-        assert_almost_equal(10 / 22.0 * jcount,
+        assert_almost_equal(10 / 23.0 * jcount,
                             tiny_counter[ssbench.CREATE_OBJECT],
-                            delta=err_pct * 10 / 22.0 * jcount)
-        assert_almost_equal(7 / 22.0 * jcount,
+                            delta=err_pct * 10 / 23.0 * jcount)
+        assert_almost_equal(7 / 23.0 * jcount,
                             tiny_counter[ssbench.READ_OBJECT],
-                            delta=err_pct * 7 / 22.0 * jcount)
-        assert_almost_equal(4 / 22.0 * jcount,
+                            delta=err_pct * 7 / 23.0 * jcount)
+        assert_almost_equal(4 / 23.0 * jcount,
                             tiny_counter[ssbench.UPDATE_OBJECT],
-                            delta=err_pct * 4 / 22.0 * jcount)
-        assert_almost_equal(1 / 22.0 * jcount,
+                            delta=err_pct * 4 / 23.0 * jcount)
+        assert_almost_equal(1 / 23.0 * jcount,
                             tiny_counter[ssbench.DELETE_OBJECT],
-                            delta=err_pct * 1 / 22.0 * jcount)
+                            delta=err_pct * 1 / 23.0 * jcount)
+        assert_almost_equal(1 / 23.0 * jcount,
+                            tiny_counter[ssbench.POST_OBJECT],
+                            delta=err_pct * 1 / 23.0 * jcount)
 
         # CRUD profiles (can be) per-size, so analyze them that way.
-        # small CRUD profile is [73, 12, 5, 10]
+        # small CRUD profile is [73, 12, 5, 9, 1]
         small_job_types = [j['type'] for j in jobs if j['size_str'] == 'small']
         small_counter = Counter(small_job_types)
         jcount = len(small_job_types)
@@ -275,11 +289,15 @@ class TestScenario(ScenarioFixture):
         assert_almost_equal(0.05 * jcount,
                             small_counter[ssbench.UPDATE_OBJECT],
                             delta=err_pct * 0.05 * jcount)
-        assert_almost_equal(0.1 * jcount, small_counter[ssbench.DELETE_OBJECT],
-                            delta=err_pct * 0.1 * jcount)
+        assert_almost_equal(0.09 * jcount,
+                            small_counter[ssbench.DELETE_OBJECT],
+                            delta=err_pct * 0.09 * jcount)
+        assert_almost_equal(0.01 * jcount,
+                            small_counter[ssbench.POST_OBJECT],
+                            delta=err_pct * 0.01 * jcount)
 
         # CRUD profiles (can be) per-size, so analyze them that way.
-        # medium CRUD profile inherits "top-level" [10, 7, 4, 1]
+        # medium CRUD profile inherits "top-level" [10, 7, 4, 1, 1]
         medium_job_types = [j['type'] for j in jobs if j[
             'size_str'] == 'medium']
         medium_counter = Counter(medium_job_types)
@@ -296,9 +314,12 @@ class TestScenario(ScenarioFixture):
         assert_almost_equal(1 / 22.0 * jcount,
                             medium_counter[ssbench.DELETE_OBJECT],
                             delta=err_pct * 1 / 22.0 * jcount)
+        assert_almost_equal(1 / 23.0 * jcount,
+                            medium_counter[ssbench.POST_OBJECT],
+                            delta=err_pct * 1 / 23.0 * jcount)
 
         # CRUD profiles (can be) per-size, so analyze them that way.
-        # large CRUD profile is [13, 17, 19, 51]
+        # large CRUD profile is [13, 17, 19, 50, 1]
         large_job_types = [j['type'] for j in jobs if j['size_str'] == 'large']
         large_counter = Counter(large_job_types)
         jcount = len(large_job_types)
@@ -311,9 +332,12 @@ class TestScenario(ScenarioFixture):
         assert_almost_equal(0.19 * jcount,
                             large_counter[ssbench.UPDATE_OBJECT],
                             delta=err_pct * 0.19 * jcount)
-        assert_almost_equal(0.51 * jcount,
+        assert_almost_equal(0.50 * jcount,
                             large_counter[ssbench.DELETE_OBJECT],
-                            delta=err_pct * 0.51 * jcount)
+                            delta=err_pct * 0.50 * jcount)
+        assert_almost_equal(0.01 * jcount,
+                            large_counter[ssbench.POST_OBJECT],
+                            delta=err_pct * 0.01 * jcount)
 
     def test_bench_jobs_noop(self):
         jobs = list(self.scenario_noop.bench_jobs())
@@ -482,3 +506,29 @@ class TestScenario(ScenarioFixture):
         assert_equal(400, size_counter['small'])
         assert_equal(200, size_counter['medium'])
         assert_equal(100, size_counter['large'])
+
+    def test_post_job_template_empty(self):
+        scenario = Scenario(self.stub_scenario_file)
+        assert_equal(scenario.post_job_template, '')
+
+    def test_post_job_template_notset(self):
+        self.scenario_dict['post_job_template'] = None
+        scenario = Scenario(_scenario_data=self.scenario_dict,
+                            scenario_filename=self.stub_scenario_file)
+        assert scenario
+
+    def test_post_job_template_rel(self):
+        self.scenario_dict['post_job_template'] = 'tmp_file'
+        scenario = Scenario(_scenario_data=self.scenario_dict,
+                            scenario_filename=self.stub_scenario_file)
+        assert scenario
+
+    def test_post_job_template(self):
+        d = dict(key1=1,
+                 key2=[2, 2, 2, 2],
+                 key3={'k1': 'v1'})
+        with open(self.stub_post_job_file, 'w') as f:
+            json.dump(d, f)
+
+        scenario = Scenario(self.stub_scenario_file)
+        assert_equal(scenario.post_job_template, json.dumps(d))
