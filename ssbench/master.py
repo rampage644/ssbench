@@ -304,7 +304,7 @@ class Master(object):
         :param returns: Collected result records from workers
         """
 
-        run_state = RunState()
+        run_state = RunState(job_template=scenario.post_job_template)
 
         logging.info(u'Starting scenario run for "%s"', scenario.name)
 

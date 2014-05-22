@@ -17,31 +17,13 @@ from collections import defaultdict, deque
 
 import ssbench
 
-JOB_TMPLT = """[{
-   "exec": {
-     "path":"swift://~/bench/bench_2",
-     "args": "/dev/input"
-   },
-   "file_list": [
-     {
-       "device": "input",
-       "path": "swift://~/input/input/object%d.txt"
-     },
-     {
-       "device": "stdout"
-     }
-   ],
-   "name": "bench_2"
-}]
-"""
-
 
 class RunState(object):
     """
     An object to track the dynamic "state" of a benchmark run.
     """
 
-    def __init__(self):
+    def __init__(self, job_template=None):
         # Stores one deque of (container_name, obj_name) tuples per size_str.
         # This stores the contents of the cluster during the benchmark run.
         # Objects are always accessed in the context of a "size_str".
@@ -56,6 +38,7 @@ class RunState(object):
         # A result for READ, UPDATE, DELETE does nothing with the deque.
         self.objs_by_size = defaultdict(deque)
         self.last_post_object_accessed = 1
+        self.job_template = job_template
 
     def _handle_result(self, result, initial=False):
         if 'exception' not in result and \
@@ -81,7 +64,7 @@ class RunState(object):
         elif job['type'] == ssbench.POST_OBJECT:
             obj_info = ('', '', '')
             self.last_post_object_accessed += 1
-            job['contents'] = JOB_TMPLT % (self.last_post_object_accessed)
+            job['contents'] = self.job_template % (self.last_post_object_accessed)
         elif job['type'] != ssbench.CREATE_OBJECT:
             try:
                 obj_info = self.objs_by_size[job['size_str']][0]

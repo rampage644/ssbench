@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import copy
 import json
 import signal
@@ -130,6 +131,16 @@ class Scenario(object):
         else:
             self.delete_after = self._scenario_data.get('delete_after',
                                                         None)
+
+        # Populate contents post_json_template with given file contents
+        # search file relative to scenario file location
+        if 'post_job_template' in self._scenario_data and \
+                self._scenario_data['post_job_template']:
+            post_file = self._scenario_data['post_job_template']
+            with open(post_file) as tfile:
+                self.post_job_template = tfile.read()
+        else:
+            self.post_job_template = None
 
     def packb(self):
         return msgpack.packb({
