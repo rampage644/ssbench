@@ -502,11 +502,14 @@ class TestWorker(object):
         object_info = {
             'type': ssbench.POST_OBJECT,
             'size': 483213,
+            'contents': ''
         }
         self.mock_worker.should_receive(
             'ignoring_http_responses',
         ).with_args(
-            (404, 503), client.head_object, object_info,
+            (404, 503), client.exec_account, object_info,
+            contents='', content_length=0,
+            content_type='application/json'
         ).and_return({
             'x-swiftstack-first-byte-latency': 2.63,
             'x-swiftstack-last-byte-latency': 7.4,
