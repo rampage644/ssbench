@@ -63,8 +63,11 @@ class RunState(object):
                 return None
         elif job['type'] == ssbench.POST_OBJECT:
             obj_info = ('', '', '')
-            self.last_post_object_accessed += 1
-            job['contents'] = self.job_template % (self.last_post_object_accessed)
+            if self.job_template:
+                self.last_post_object_accessed += 1
+                job['contents'] = self.job_template % (self.last_post_object_accessed)
+            else:
+                return None # no template - no job
         elif job['type'] != ssbench.CREATE_OBJECT:
             try:
                 obj_info = self.objs_by_size[job['size_str']][0]

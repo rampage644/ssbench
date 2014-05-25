@@ -349,3 +349,16 @@ class TestRunState(object):
                 'name': '',
                 'contents': self.run_state.job_template % i
             })
+
+    def test_fill_in_job_for_post_object_empty_template(self):
+        self._fill_initial_results()
+
+        assert_equal(self.run_state.fill_in_job({
+            'type': ssbench.POST_OBJECT,
+            'size_str': 'poster',
+        }), None)
+
+        assert_equal(self.run_state.fill_in_job({
+            'type': ssbench.POST_OBJECT,
+            'size_str': 'whatever',
+        }), None)
