@@ -372,3 +372,33 @@ class TestRunState(object):
             'type': ssbench.POST_OBJECT,
             'size_str': 'whatever',
         }), None)
+
+
+    def test_fill_in_job_for_post_object_template_as_text(self):
+        self._fill_initial_results()
+        self._fill_run_results()
+
+        self.run_state.job_template = 'template'
+
+        for i in range(1, 1000):
+            assert_equal(self.run_state.fill_in_job({
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+            }), {
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+                'container': '',
+                'name': '',
+                'contents': self.run_state.job_template
+            })
+        assert_equal(self.run_state.fill_in_job({
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+            }), {
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+                'container': '',
+                'name': '',
+                'contents': self.run_state.job_template
+            })
+

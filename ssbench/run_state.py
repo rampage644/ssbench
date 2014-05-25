@@ -67,8 +67,12 @@ class RunState(object):
         elif job['type'] == ssbench.POST_OBJECT:
             obj_info = ('', '', '')
             if self.job_template:
-                job['contents'] = self.job_template % (
-                    self.job_iterator.next())
+                try:
+                    job['contents'] = self.job_template % (
+                        self.job_iterator.next())
+                except TypeError:
+                    # tempalte without string formatting
+                    job['contents'] = self.job_template
             else:
                 return None  # no template - no job
         elif job['type'] != ssbench.CREATE_OBJECT:
