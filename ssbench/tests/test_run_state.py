@@ -34,7 +34,7 @@ class TestRunState(object):
         }]
         # non-CREATE_OBJECT results are saved but not added to the deque
         for t in [ssbench.READ_OBJECT, ssbench.UPDATE_OBJECT,
-                  ssbench.DELETE_OBJECT]:
+                  ssbench.DELETE_OBJECT, ssbench.POST_OBJECT]:
             initial_results.append({
                 'type': t,
                 'size_str': 'obtuse',
@@ -63,6 +63,20 @@ class TestRunState(object):
             'name': 'obj2',
             'size': 90,
         })
+        initial_results.append({
+            'type': ssbench.POST_OBJECT,
+            'size_str': 'poster',
+            'container': 'bucket4',
+            'name': 'obj1',
+            'size': 4
+            })
+        initial_results.append({
+            'type': ssbench.POST_OBJECT,
+            'size_str': 'poster',
+            'container': 'bucket3',
+            'name': 'obj1',
+            'size': 3
+            })
         for r in initial_results:
             self.run_state.handle_initialization_result(r)
 
@@ -76,7 +90,7 @@ class TestRunState(object):
         }]
         # non-CREATE_OBJECT results are saved but not added to the deque
         for t in [ssbench.READ_OBJECT, ssbench.UPDATE_OBJECT,
-                  ssbench.DELETE_OBJECT]:
+                  ssbench.DELETE_OBJECT, ssbench.POST_OBJECT]:
             run_results.append({
                 'type': t,
                 'size_str': 'obtuse',
@@ -105,6 +119,20 @@ class TestRunState(object):
             'name': 'obj6',
             'size': 90,
         })
+        run_results.append({
+            'type': ssbench.POST_OBJECT,
+            'size_str': 'poster',
+            'container': 'bucket1',
+            'name': 'obj1',
+            'size': 1
+            })
+        run_results.append({
+            'type': ssbench.POST_OBJECT,
+            'size_str': 'poster',
+            'container': 'bucket2',
+            'name': 'obj1',
+            'size': 2
+            })
         for r in run_results:
             self.run_state.handle_run_result(r)
 
@@ -303,3 +331,21 @@ class TestRunState(object):
             'obtuse': deque([]),
             'round': deque([]),
         })
+
+    def test_fill_in_job_for_post_object(self):
+        self._fill_initial_results()
+        self._fill_run_results()
+
+        self.run_state.job_template = 'template%d'
+
+        for i in range(2, 10):
+            assert_equal(self.run_state.fill_in_job({
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+            }), {
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+                'container': '',
+                'name': '',
+                'contents': self.run_state.job_template % i
+            })
