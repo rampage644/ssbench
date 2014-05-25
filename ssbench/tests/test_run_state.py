@@ -338,7 +338,7 @@ class TestRunState(object):
 
         self.run_state.job_template = 'template%d'
 
-        for i in range(2, 10):
+        for i in range(1, 1000):
             assert_equal(self.run_state.fill_in_job({
                 'type': ssbench.POST_OBJECT,
                 'size_str': 'poster',
@@ -348,6 +348,16 @@ class TestRunState(object):
                 'container': '',
                 'name': '',
                 'contents': self.run_state.job_template % i
+            })
+        assert_equal(self.run_state.fill_in_job({
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+            }), {
+                'type': ssbench.POST_OBJECT,
+                'size_str': 'poster',
+                'container': '',
+                'name': '',
+                'contents': self.run_state.job_template % 1
             })
 
     def test_fill_in_job_for_post_object_empty_template(self):

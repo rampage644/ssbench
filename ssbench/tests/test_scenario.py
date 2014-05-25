@@ -64,7 +64,8 @@ class ScenarioFixture(object):
                 #             C  R  U  D
                 crud_profile=[10, 7, 4, 1, 1],  # maybe make this a dict?
                 user_count=1,
-                post_job_template=self.stub_post_job_file
+                post_job_template=self.stub_post_job_file,
+                post_job_range=[1, 100]
             )
         self.write_scenario_file()
         self.scenario = Scenario(self.stub_scenario_file)
@@ -532,3 +533,8 @@ class TestScenario(ScenarioFixture):
 
         scenario = Scenario(self.stub_scenario_file)
         assert_equal(scenario.post_job_template, json.dumps(d))
+
+    def test_post_job_args(self):
+        scenario = Scenario(self.stub_scenario_file)
+        assert_equal(scenario._scenario_data['post_job_range'],
+                     [1, 100])

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from collections import defaultdict, deque
+from itertools import cycle
 
 import ssbench
 
@@ -23,7 +24,8 @@ class RunState(object):
     An object to track the dynamic "state" of a benchmark run.
     """
 
-    def __init__(self, job_template=None):
+    def __init__(self, job_template=None,
+                 job_range_start=1, job_range_end=1000):
         # Stores one deque of (container_name, obj_name) tuples per size_str.
         # This stores the contents of the cluster during the benchmark run.
         # Objects are always accessed in the context of a "size_str".
@@ -37,7 +39,8 @@ class RunState(object):
         # deque) with append().
         # A result for READ, UPDATE, DELETE does nothing with the deque.
         self.objs_by_size = defaultdict(deque)
-        self.last_post_object_accessed = 1
+        self.job_iterator = cycle(range(job_range_start,
+                                        job_range_end))
         self.job_template = job_template
 
     def _handle_result(self, result, initial=False):
@@ -64,10 +67,10 @@ class RunState(object):
         elif job['type'] == ssbench.POST_OBJECT:
             obj_info = ('', '', '')
             if self.job_template:
-                self.last_post_object_accessed += 1
-                job['contents'] = self.job_template % (self.last_post_object_accessed)
+                job['contents'] = self.job_template % (
+                    self.job_iterator.next())
             else:
-                return None # no template - no job
+                return None  # no template - no job
         elif job['type'] != ssbench.CREATE_OBJECT:
             try:
                 obj_info = self.objs_by_size[job['size_str']][0]
